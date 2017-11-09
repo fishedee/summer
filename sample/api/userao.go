@@ -1,9 +1,4 @@
-package main
-
-type User struct {
-	Id   int
-	Name string
-}
+package api
 
 type UserAo interface {
 	Get(id int) User
