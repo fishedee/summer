@@ -3,26 +3,29 @@ package service
 import (
 	"github.com/fishedee/summer/ioc"
 	"github.com/fishedee/summer/sample/api"
+	"github.com/fishedee/summer/sample/util"
 )
 
-type UserAoImpl struct {
+type userAoImpl struct {
 	userDb api.UserDb
 }
 
-func (this *UserAoImpl) Get(id int) api.User {
+func (this *userAoImpl) Get(id int) api.User {
+	util.MyLog.Debug("Get %v", id)
 	return this.userDb.Get(id)
 }
 
-func (this *UserAoImpl) Add(data api.User) int {
+func (this *userAoImpl) Add(data api.User) int {
+	util.MyLog.Debug("Add %v", data)
 	return this.userDb.Add(data)
 }
 
-func NewUserAoImpl(userDb api.UserDb) api.UserAo {
-	userAo := &UserAoImpl{}
+func newUserAoImpl(userDb api.UserDb) api.UserAo {
+	userAo := &userAoImpl{}
 	userAo.userDb = userDb
 	return userAo
 }
 
 func init() {
-	ioc.Register(NewUserAoImpl)
+	ioc.Register(newUserAoImpl)
 }

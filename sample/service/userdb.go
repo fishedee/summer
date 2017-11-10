@@ -3,31 +3,27 @@ package service
 import (
 	"github.com/fishedee/summer/ioc"
 	"github.com/fishedee/summer/sample/api"
+	"github.com/fishedee/summer/sample/util"
 )
 
-type UserDbImpl struct {
-	totalId int
-	data    map[int]api.User
+type userDbImpl struct {
+	db util.Db
 }
 
-func (this *UserDbImpl) Get(id int) api.User {
-	return this.data[id]
+func (this *userDbImpl) Get(id int) api.User {
+	return this.db.Select(id).(api.User)
 }
 
-func (this *UserDbImpl) Add(data api.User) int {
-	this.totalId++
-	data.Id = this.totalId
-	this.data[this.totalId] = data
-	return this.totalId
+func (this *userDbImpl) Add(data api.User) int {
+	return this.db.Insert(data)
 }
 
-func NewUserDbImpl() api.UserDb {
-	userDb := &UserDbImpl{}
-	userDb.totalId = 10000
-	userDb.data = map[int]api.User{}
-	return userDb
+func newUserDbImpl(db util.Db) api.UserDb {
+	userDbImpl := &userDbImpl{}
+	userDbImpl.db = db
+	return userDbImpl
 }
 
 func init() {
-	ioc.Register(NewUserDbImpl)
+	ioc.Register(newUserDbImpl)
 }
