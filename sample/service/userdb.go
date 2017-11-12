@@ -11,7 +11,11 @@ type userDbImpl struct {
 }
 
 func (this *userDbImpl) Get(id int) api.User {
-	return this.db.Select(id).(api.User)
+	result := this.db.Select(id)
+	if result == nil {
+		panic("404 not found id")
+	}
+	return result.(api.User)
 }
 
 func (this *userDbImpl) Add(data api.User) int {
