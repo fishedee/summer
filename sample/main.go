@@ -1,38 +1,53 @@
 package main
 
 import (
-	"fmt"
-	"github.com/fishedee/summer/ioc"
-	"github.com/fishedee/summer/sample/api"
+	"encoding/json"
 	_ "github.com/fishedee/summer/sample/service"
+	"github.com/fishedee/summer/sample/util"
+	"net/http"
 )
 
-type MM struct {
-	userAo api.UserAo
+func logMiddle(handlers []interface{}) interface{} {
+	preHandler := handlers[len(handlers)-1].(func(http.ResponseWriter, *http.Request))
+
+	return func(writer http.ResponseWriter, request *http.Request) {
+		util.MyLog.Debug("Request In %v", request.URL.Path)
+		preHandler(writer, request)
+		util.MyLog.Debug("Request Out %v", request.URL.Path)
+	}
 }
 
-func (this *MM) run() {
-	this.userAo.Add(api.User{
-		Name: "123",
-	})
-	this.userAo.Add(api.User{
-		Name: "456",
-	})
-	fmt.Println(this.userAo.Get(10001))
-	fmt.Println(this.userAo.Get(10002))
+func jsonMiddle(handlers []interface{}) interface{} {
+	preHandler := handlers[len(handlers)-1].(func() interface{})
+	return func(writer http.ResponseWriter, request *http.Request) {
+		result := preHandler()
+		jsonMap := map[string]interface{}{
+			"code": 0,
+			"msg":  "",
+			"data": result,
+		}
+		resultByte, err := json.Marshal(jsonMap)
+		if err != nil {
+			panic(err)
+		}
+		writer.Write(resultByte)
+	}
 }
 
-func NewMM(userAo api.UserAo) *MM {
-	this := &MM{}
-	this.userAo = userAo
-	return this
+func handleA() interface{} {
+	return "Hello Fish!AA"
+}
+
+func handleB() interface{} {
+	return "Hello Fish!BB"
 }
 
 func main() {
-	mm := ioc.New((*MM)(nil)).(*MM)
-	mm.run()
-}
-
-func init() {
-	ioc.Register(NewMM)
+	util.MyLog.Debug("Server is running...")
+	server := util.NewServer()
+	server.Use(logMiddle)
+	server.Use(jsonMiddle)
+	server.Route("/a", handleA)
+	server.Route("/b", handleB)
+	server.Run(":8073")
 }
