@@ -7,7 +7,7 @@ import (
 )
 
 func TestUserDb(t *testing.T) {
-	userDb := ioc.New((*api.UserDb)(nil)).(api.UserDb)
+	userDb := ioc.New((*api.UserDb)(nil), nil, nil).(api.UserDb)
 	id1 := userDb.Add(api.User{Name: "Fish"})
 	id2 := userDb.Add(api.User{Name: "Fish2"})
 	if id1 != 10001 ||

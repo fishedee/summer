@@ -7,6 +7,7 @@ import (
 	_ "github.com/fishedee/summer/sample/service"
 	"github.com/fishedee/summer/sample/util"
 	"net/http"
+	"reflect"
 	"strconv"
 )
 
@@ -83,8 +84,23 @@ func NewController(userAo api.UserAo) *Controller {
 	return result
 }
 
+func hookHandler(data interface{}) interface{} {
+	dataValue := reflect.ValueOf(data)
+	newValue := reflect.MakeFunc(dataValue.Type(), func(args []reflect.Value) []reflect.Value {
+		util.MyLog.Debug("Hook Begin!")
+		result := dataValue.Call(args)
+		util.MyLog.Debug("Hook End!")
+		return result
+	})
+	return newValue.Interface()
+}
+
 func main() {
-	controller := ioc.New((*Controller)(nil)).(*Controller)
+	hook := map[string]interface{}{
+		"UserAo.Get": hookHandler,
+		"UserAo.Add": hookHandler,
+	}
+	controller := ioc.New((*Controller)(nil), nil, hook).(*Controller)
 
 	util.MyLog.Debug("Server is running...")
 	server := util.NewServer()
